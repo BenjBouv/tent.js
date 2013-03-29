@@ -1,0 +1,17 @@
+exports.config = {
+    entity: 'http://url-entity-goes-here',
+
+    app: tentapp = {
+      "name": "BigCorpAnalysisInc",
+      "description": "Makes a lot of money with your data",
+      "url": "http://app.example.com",
+      "redirect_uris": [
+        "http://app.example.com/callback"
+      ],
+      "scopes": {
+        "read_profile": "Reads your profile and sells your personal information to big companies.",
+        "read_posts": "Reads your posts and sells them to advertising companies.",
+        "write_posts": "Write ads on your public profile."
+      }
+    }
+};
