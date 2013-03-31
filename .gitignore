@@ -1,2 +1,5 @@
 *node_modules/
 *.swp
+
+example/config.js
+example/credentials*
