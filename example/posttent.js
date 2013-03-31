@@ -1,18 +1,30 @@
 var fs = require('fs');
+var tent = require('../lib/tent');
 
 fs.readFile( 'credentials.user.js', function(err, data) {
-	var cred = JSON.parse( data );
-	var mac_key = cred.mac_key;
-	var mac_key_id = cred.access_token;
+    if( err ) {
+        console.error(err);
+        return;
+    }
 
-	var tenturl = 'https://bnj.tent.is';
+    var cred = JSON.parse( data );
+    var mac_key = cred.mac_key;
+    var mac_key_id = cred.access_token;
 
-	var tent = require('./tent');
-	tent.getPosts( tenturl, mac_key, mac_key_id, function(posts) {
-		console.log('first time');
-		console.log( JSON.stringify(posts) );
-		tent.getPosts( tenturl, mac_key, mac_key_id, function(p2) {
-			console.log('second time');
-		});
-	});
+    var tenturl = 'https://bnj.tent.is';
+
+    var client = new tent.Client(tenturl);
+    client.registerClient( mac_key, mac_key_id );
+    client.getPosts( function(err, posts) {
+        if( err ) {
+            console.error(err);
+            return;
+        }
+
+        console.log('first time');
+        console.log( JSON.stringify(posts) );
+        client.getPosts( function(err, p2) {
+            console.log('second time');
+        });
+    });
 });

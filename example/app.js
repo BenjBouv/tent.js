@@ -29,10 +29,20 @@ app.configure('development', function(){
   app.locals.pretty = true;
 });
 
+var client = new tent.Client( config.entity );
+
 app.get('/', function(req, res) {
-    tent.registerApp(config.entity, config.app, function(oauthurl, components) {
-    fs.writeFileSync('credentials.app.js', JSON.stringify(components) );
-        res.redirect( oauthurl );
+    client.registerApp({
+        appInfo: config.app,
+        callback: function(err, oauthurl, components) {
+            if( err ) {
+                console.error( err );
+                res.send(500);
+                return;
+            }
+            fs.writeFileSync('credentials.app.js', JSON.stringify(components) );
+            res.redirect( oauthurl );
+        }
     });
 });
 
@@ -40,12 +50,20 @@ app.get('/callback', function(req, res) {
     var code = req.param('code'),
         state = req.param('state');
 
-    tent.finishRegistration(code, state, function(components) {
-    fs.writeFileSync('credentials.user.js', JSON.stringify(components) );
+    tent.registerClient(code, state, function(err, components) {
+        if( err ) {
+            console.error( err );
+            res.send(501);
+            return;
+        }
+
+        fs.writeFileSync('credentials.user.js', JSON.stringify(components) );
         res.send('Message: ' + JSON.stringify(components));
+        client.registerClient( components.mac_key, components.mac_key_id );
     });
 });
 
 http.createServer(app).listen(PORT, function(){
-  console.log("Express server listening on port " + PORT);
+    console.log("Express server listening on port " + PORT);
 });
+
