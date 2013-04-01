@@ -59,7 +59,6 @@ app.get('/callback', function(req, res) {
 
         fs.writeFileSync('credentials.user.js', JSON.stringify(components) );
         res.send('Message: ' + JSON.stringify(components));
-        client.clientRegister( components.mac_key, components.mac_key_id );
     });
 });
 

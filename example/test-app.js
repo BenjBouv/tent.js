@@ -8,6 +8,7 @@ fs.readFile( 'credentials.app.js', function(_, data) {
     var cred = JSON.parse(data);
 
     client.appRegister({
+        mac_algorithm: cred.mac_algorithm,
         mac_key: cred.mac_key,
         mac_key_id: cred.mac_key_id,
         id: cred.id,
