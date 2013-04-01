@@ -14,7 +14,7 @@ fs.readFile( 'credentials.user.js', function(err, data) {
     var tenturl = 'https://bnj.tent.is';
 
     var client = new tent.Client(tenturl);
-    client.registerClient( mac_key, mac_key_id );
+    client.clientRegister( mac_key, mac_key_id );
     client.getPosts( function(err, posts) {
         if( err ) {
             console.error(err);
