@@ -7,7 +7,7 @@ var client = new tent.Client( config.entity );
 fs.readFile( 'credentials.app.js', function(_, data) {
     var cred = JSON.parse(data);
 
-    client.registerApp({
+    client.appRegister({
         mac_key: cred.mac_key,
         mac_key_id: cred.mac_key_id,
         id: cred.id,
@@ -18,7 +18,7 @@ fs.readFile( 'credentials.app.js', function(_, data) {
 
                 var appInfo = config.app;
                 appInfo.name = 'DataStalkerInc';
-                client.updateApp( appInfo, function(err2, app2) {
+                client.appUpdate( appInfo, function(err2, app2) {
                     if( err2 ) { console.error(err2); return; }
                     console.log("updated app: " + JSON.stringify(app2) + '\n');
                 });

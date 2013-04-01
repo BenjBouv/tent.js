@@ -32,7 +32,7 @@ app.configure('development', function(){
 var client = new tent.Client( config.entity );
 
 app.get('/', function(req, res) {
-    client.registerApp({
+    client.appRegister({
         appInfo: config.app,
         callback: function(err, oauthurl, components) {
             if( err ) {
@@ -50,16 +50,16 @@ app.get('/callback', function(req, res) {
     var code = req.param('code'),
         state = req.param('state');
 
-    tent.registerClient(code, state, function(err, components) {
+    tent.clientRegister(code, state, function(err, components) {
         if( err ) {
             console.error( err );
-            res.send(501);
+            res.send(500);
             return;
         }
 
         fs.writeFileSync('credentials.user.js', JSON.stringify(components) );
         res.send('Message: ' + JSON.stringify(components));
-        client.registerClient( components.mac_key, components.mac_key_id );
+        client.clientRegister( components.mac_key, components.mac_key_id );
     });
 });
 
