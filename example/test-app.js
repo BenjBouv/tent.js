@@ -19,6 +19,7 @@ fs.readFile( 'credentials.app.js', function(_, data) {
 
                 var appInfo = config.app;
                 appInfo.name = 'DataStalkerInc';
+                appInfo.scopes.write_profile = 'Advertise your profile for higher results!';
                 client.appUpdate( appInfo, function(err2, app2) {
                     if( err2 ) { console.error(err2); return; }
                     console.log("updated app: " + JSON.stringify(app2) + '\n');
