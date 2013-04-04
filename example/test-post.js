@@ -21,10 +21,36 @@ fs.readFile( 'credentials.user.js', function(err, data) {
             return;
         }
 
-        console.log('first time');
+        console.log('last post received: ');
         console.log( JSON.stringify(posts) );
-        client.postsGet( {}, function(err, p2) {
-            console.log('second time');
+
+        var myStatus = {
+            type: 'status',
+            content: {
+                text: 'Hello, world!'
+            },
+            permissions: {public:true}
+        };
+
+        client.postsCreate(
+        myStatus, function(err, enhancedPost) {
+            if(err) { console.error(err); return }
+
+            var postId = enhancedPost.id;
+            console.log( 'Post has been created with id ' + postId );
+            console.log( 'Trying to update the post...' );
+
+            myStatus.id = postId;
+            myStatus.content.text = 'Hello from nodejs tent client!';
+            client.postsUpdate( myStatus, function(err, enhancedPost2) {
+                if( err ) { console.error(err); return }
+                console.log('Post updated! Deleting it.');
+                client.postsDelete( {id: enhancedPost2.id }, function(err) {
+                if( err ) { console.error(err); return }
+                console.log('Everything went good.');
+                });
+            });
+
         });
     });
 });
