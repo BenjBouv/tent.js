@@ -1,5 +1,9 @@
 exports.config = {
+    // An entity we will use credentials for
     entity: 'http://url-entity-goes-here',
+
+    // An entity that we don't need to use credentials for(for retrieving public posts, etc.)
+    stalkedEntity: 'https://anotherEntity.campr.me',
 
     app: tentapp = {
       "name": "BigCorpAnalysisInc",
