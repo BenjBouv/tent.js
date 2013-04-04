@@ -15,7 +15,7 @@ fs.readFile( 'credentials.user.js', function(err, data) {
 
     var client = new tent.Client(config.entity);
     client.clientRegister( mac_algo, mac_key, mac_key_id );
-    client.postsGet( function(err, posts) {
+    client.postsGet( {limit:1}, function(err, posts) {
         if( err ) {
             console.error(err);
             return;
@@ -23,7 +23,7 @@ fs.readFile( 'credentials.user.js', function(err, data) {
 
         console.log('first time');
         console.log( JSON.stringify(posts) );
-        client.postsGet( function(err, p2) {
+        client.postsGet( {}, function(err, p2) {
             console.log('second time');
         });
     });
