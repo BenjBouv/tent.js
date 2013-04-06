@@ -1,4 +1,4 @@
-class MacRegistration
+class MacCredentials
     constructor: ( @mac_key, @mac_key_id) ->
         @mac_algorithm = 'hmac-sha-256'
 
@@ -10,6 +10,6 @@ class MacRegistration
 module.exports = () ->
     type = arguments[0]
     if type == 'hmac-sha-256'
-        new MacRegistration arguments[1], arguments[2]
+        new MacCredentials arguments[1], arguments[2]
     else
-        throw new Error 'Registration type not found!'
+        throw new Error 'Credentials type not found!'
