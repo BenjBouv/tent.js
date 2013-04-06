@@ -62,6 +62,8 @@ class Client
             r = new Request reqParam, rcb
             r.run()
 
+        @
+
     getApiRoot: (cb) ->
         @getProfile (err, p) ->
             if err
@@ -73,12 +75,15 @@ class Client
                 cb null, core.servers[0]
             else
                 cb 'profile key error: no core or servers'
+        @
 
     # TODO do not depend on mk and mkid
     setUserCredentials: (mk, mkid) ->
         @credentials.user = Credentials 'hmac-sha-256', mk, mkid
+        @
 
     setAppCredentials: (mk, mkid) ->
         @credentials.app = Credentials 'hmac-sha-256', mk, mkid
+        @
 
 module.exports = Client

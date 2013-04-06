@@ -7,6 +7,7 @@ class Application extends SubModule
 
     setId: (id) ->
         @id = id
+        @
 
     _getId: ( args, cb ) ->
         if args.length == 2
@@ -78,6 +79,7 @@ class Application extends SubModule
                     '&tent_post_types=all' + # TODO
                     ''
                 cb null, authUrl, @info
+        @
 
     register: (appInfo, cb) =>
         reqParam =
@@ -97,6 +99,7 @@ class Application extends SubModule
             @getAuthUrl cb
 
         @call reqParam, rcb
+        @
 
     tradeCode: ( code, state, cb ) =>
         if not @id
@@ -122,6 +125,7 @@ class Application extends SubModule
             cb null, @client.credentials.user
 
         @call reqParam, rcb
+        @
 
 
 module.exports = Application

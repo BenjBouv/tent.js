@@ -10,6 +10,7 @@ class Profile extends SubModule
 
     get: ( cb ) ->
         @client.getProfile cb
+        @
 
     getSpecific: ( type, params, cb ) =>
         type = @expand type
@@ -22,6 +23,7 @@ class Profile extends SubModule
             auth: @client.credentials.user
         rcb = utils.makeGenericCallback cb
         @call reqParam, rcb
+        @
 
     update: ( type, profile, params, cb ) =>
         found = Profile::TYPES[ type ]
@@ -49,6 +51,7 @@ class Profile extends SubModule
                 cb null, @client.profiles
 
         @call reqParam, rcb
+        @
 
     delete: ( type, params, cb ) =>
         type = @expand type
@@ -62,6 +65,7 @@ class Profile extends SubModule
         rcb = (err, h, data) ->
             cb if err then err else null
         @call reqParam, rcb
+        @
 
     Profile::TYPES =
         core:
