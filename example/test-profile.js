@@ -1,5 +1,5 @@
 var fs = require('fs');
-var config = require('./config').config;
+var config = require('./config');
 var tent = require('../lib/tent');
 
 fs.readFile( 'credentials.user.js', function(err, data) {
@@ -13,34 +13,29 @@ fs.readFile( 'credentials.user.js', function(err, data) {
     var mac_key = cred.mac_key;
     var mac_key_id = cred.mac_key_id;
 
-    var client = new tent.Client(config.entity);
-    client.clientRegister( mac_algo, mac_key, mac_key_id );
-    client.profileGetSpecific({
-        type: 'basic',
-    }, function(err, profile) {
+    var client = new tent(config.entity);
+    client.setUserCredentials( mac_key, mac_key_id );
+    client.profile.getSpecific('basic', {}, function(err, profile) {
 
         if(err) { console.error( err ); return; }
         console.log('Basic profile: ' + JSON.stringify(profile));
 
         var newProfile = profile;
-        profile.bio += ' <= this is awesome.';
-        client.profileUpdate({
-            type: 'basic',
-            profile: newProfile
-        }, function(err, enhancedProfile) {
-            if(err) { console.error( err ); return; }
+        profile.bio += ' (CoffeeScript rules, BTW)';
+
+        client.profile.update('basic', newProfile, {}, function(err, enhancedProfile) {
+            if(err) { console.error('ERROR: '+ err ); return; }
             console.log('Enhanced updated profile: ' + JSON.stringify(enhancedProfile) );
 
-            var oldProfile = enhancedProfile[ client.PROFILES.basic.url ];
-            client.profileDelete({ type: 'basic' }, function(err) {
+            var oldProfile = enhancedProfile[ client.profile.TYPES.basic.url ];
+            client.profile.delete('basic', {}, function(err) {
                 if(err) { console.error( err ); return; }
 
                 console.log('Deletion seems ok.');
-                client.profileUpdate({ type: 'basic', profile: oldProfile }, function(err) {
+                client.profile.update('basic', oldProfile, {}, function(err) {
                     console.log('Old profile set back.');
                 });
             });
         });
-
     });
 });

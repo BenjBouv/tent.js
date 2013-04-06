@@ -1,4 +1,4 @@
-var tent = require('../lib/tent');
+var Tent = require('../lib/tent');
 var express = require('express')
   , http = require('http')
   , path = require('path')
@@ -29,20 +29,18 @@ app.configure('development', function(){
   app.locals.pretty = true;
 });
 
-var client = new tent.Client( config.entity );
+var client = new Tent( config.entity );
 
 app.get('/', function(req, res) {
-    client.appRegister({
-        appInfo: config.app,
-        callback: function(err, oauthurl, components) {
-            if( err ) {
-                console.error( err );
+    client.app.register( config.app,
+        function(err, oauthurl, components) {
+            if(err) {
+                console.error(err);
                 res.send(500);
-                return;
+            } else {
+                fs.writeFileSync('credentials.app.js', JSON.stringify(components));
+                res.redirect( oauthurl );
             }
-            fs.writeFileSync('credentials.app.js', JSON.stringify(components) );
-            res.redirect( oauthurl );
-        }
     });
 });
 
@@ -50,7 +48,7 @@ app.get('/callback', function(req, res) {
     var code = req.param('code'),
         state = req.param('state');
 
-    tent.clientRegister(code, state, function(err, components) {
+    client.app.tradeCode( code, state, function(err, components) {
         if( err ) {
             console.error( err );
             res.send(500);

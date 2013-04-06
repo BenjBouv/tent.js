@@ -1,5 +1,5 @@
 var fs = require('fs');
-var config = require('./config').config;
+var config = require('./config');
 var tent = require('../lib/tent');
 
 fs.readFile( 'credentials.user.js', function(err, data) {
@@ -13,9 +13,9 @@ fs.readFile( 'credentials.user.js', function(err, data) {
     var mac_key = cred.mac_key;
     var mac_key_id = cred.mac_key_id;
 
-    var client = new tent.Client(config.entity);
-    client.clientRegister( mac_algo, mac_key, mac_key_id );
-    client.postsGet( {limit:1}, function(err, posts) {
+    var client = new tent(config.entity);
+    client.setUserCredentials( mac_key, mac_key_id );
+    client.posts.get( {limit:1}, function(err, posts) {
         if( err ) {
             console.error(err);
             return;
@@ -32,7 +32,7 @@ fs.readFile( 'credentials.user.js', function(err, data) {
             permissions: {public:true}
         };
 
-        client.postsCreate(
+        client.posts.create(
         myStatus, function(err, enhancedPost) {
             if(err) { console.error(err); return }
 
@@ -40,12 +40,11 @@ fs.readFile( 'credentials.user.js', function(err, data) {
             console.log( 'Post has been created with id ' + postId );
             console.log( 'Trying to update the post...' );
 
-            myStatus.id = postId;
             myStatus.content.text = 'Hello from nodejs tent client!';
-            client.postsUpdate( myStatus, function(err, enhancedPost2) {
+            client.posts.update( postId, myStatus, function(err, enhancedPost2) {
                 if( err ) { console.error(err); return }
                 console.log('Post updated! Deleting it.');
-                client.postsDelete( {id: enhancedPost2.id }, function(err) {
+                client.posts.delete( enhancedPost2.id, {}, function(err) {
                 if( err ) { console.error(err); return }
                 console.log('Everything went good.');
                 });
