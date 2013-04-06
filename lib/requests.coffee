@@ -1,6 +1,7 @@
 http = require 'http'
 https = require 'https'
 url = require 'url'
+qs = require 'querystring'
 
 utils = require './utils'
 
@@ -8,10 +9,13 @@ class Request
 
     constructor: (params, @cb) ->
 
-        throw new Error('no cible defined') unless params.cible
+        throw new Error('no cible defined') unless params.url
         throw new Error('no method defined') unless params.method
 
-        @opts = url.parse params.cible
+        if params.additional and Object.keys(params.additional).length > 0
+            params.url += '?' + qs.stringify( params.additional )
+
+        @opts = url.parse params.url
         @opts.method = params.method
         @opts.headers =
             "Accept": "application/vnd.tent.v0+json"
@@ -19,23 +23,28 @@ class Request
         if params.body
             @body = params.body
             @opts.headers['Content-Type'] = "application/vnd.tent.v0+json"
-            @opts.headers['Content-Length'] = body.length.toString()
+            @opts.headers['Content-Length'] = @body.length.toString()
         else
-            @body = false
+            @body = null
 
         if params.auth
-            # TODO make auth independent from request
-            @opts.headers['Authorization'] = utils.createHmacAuth @opts, mk, mkid
+            @opts.headers['Authorization'] = params.auth.getAuthorization @opts
+
 
     run: () ->
+
+        utils.debug 'requests.headers', @opts
+
         reqMeth = if utils.isSecured @opts then https.request else http.request
-        req = reqMeth @opts, (res) ->
+        req = reqMeth @opts, (res) =>
             data = ''
 
             res.on 'data', (chunk) ->
                 data += chunk
 
-            res.on 'end', () ->
+            res.on 'end', () =>
+                utils.debug 'response.headers', res.headers
+
                 if res.headers.status and res.headers.status.substring(0, 3) != '200'
                     @cb "Status isn't 200 OK but " + res.headers.status + "\nData received: " + data
                 else

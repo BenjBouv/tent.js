@@ -1,5 +1,12 @@
 crypto = require 'crypto'
-config = require 'config'
+config = require './config'
+
+exports.makeGenericCallback = (cb) ->
+    (err, headers, data) ->
+        if err
+            cb err
+        else
+            cb null, JSON.parse data
 
 exports.generateUniqueToken = (cb) ->
     crypto.randomBytes 32, (_, buf) ->
@@ -38,5 +45,5 @@ exports.createHmacAuth = ( opts, mk, mkid ) ->
     hmac.update normalizedReqString
     digest = hmac.digest 'base64'
 
-    ['MAC id="' + mkid, 'ts="' + timestamp, 'nonce="' + nonce, 'mac="' + digest].join '", '
+    ['MAC id="' + mkid, 'ts="' + timestamp, 'nonce="' + nonce, 'mac="' + digest].join('", ') + '"'
 
