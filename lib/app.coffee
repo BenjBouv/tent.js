@@ -75,13 +75,17 @@ class Application extends SubModule
                 cb 'no application id!'
                 return
 
+            if not @info
+                cb 'no application info!'
+                return
+
             utils.generateUniqueToken (state) =>
                 @state = state
                 authUrl = apiRootUrl + '/oauth/authorize?client_id=' + @id +
                     '&redirect_uri=' + @info.redirect_uris[0] +
                     '&scope=' + Object.keys(@info.scopes).join(',') +
                     '&response_type=code' +
-                    '&state' + state +
+                    '&state=' + state +
                     '&tent_profile_info_types=all' + # TODO
                     '&tent_post_types=all' + # TODO
                     ''
@@ -111,6 +115,13 @@ class Application extends SubModule
     tradeCode: ( code, state, cb ) =>
         if not @id
             cb 'no application id!'
+            return
+        if not @state
+            cb 'no application state!'
+            return
+
+        if @state != state
+            cb 'state different than the one used in registration.'
             return
 
         reqParam =
