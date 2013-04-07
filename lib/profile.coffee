@@ -25,7 +25,7 @@ class Profile extends SubModule
         @call reqParam, rcb
         @
 
-    update: ( type, profile, params, cb ) =>
+    update: ( type, profile, cb ) =>
         found = Profile::TYPES[ type ]
         if found
             valid = ( !!profile[ field ] for field in found.required ).reduce (a,b) ->

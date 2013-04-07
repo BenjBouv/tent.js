@@ -23,7 +23,7 @@ fs.readFile( 'credentials.user.js', function(err, data) {
         var newProfile = profile;
         profile.bio += ' (CoffeeScript rules, BTW)';
 
-        client.profile.update('basic', newProfile, {}, function(err, enhancedProfile) {
+        client.profile.update('basic', newProfile, function(err, enhancedProfile) {
             if(err) { console.error('ERROR: '+ err ); return; }
             console.log('Enhanced updated profile: ' + JSON.stringify(enhancedProfile) );
 
@@ -32,7 +32,7 @@ fs.readFile( 'credentials.user.js', function(err, data) {
                 if(err) { console.error( err ); return; }
 
                 console.log('Deletion seems ok.');
-                client.profile.update('basic', oldProfile, {}, function(err) {
+                client.profile.update('basic', oldProfile, function(err) {
                     console.log('Old profile set back.');
                 });
             });
