@@ -15,7 +15,7 @@ fs.readFile( 'credentials.user.js', function(err, data) {
 
     var client = new tent(config.entity);
     client.setUserCredentials( mac_key, mac_key_id );
-    client.posts.get( {limit:1}, function(err, posts) {
+    client.posts.get( {limit:1, type: "status"}, function(err, posts) {
         if( err ) {
             console.error(err);
             return;

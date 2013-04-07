@@ -65,6 +65,9 @@ class Posts extends SubModule
     get: ( params, cb ) =>
         url = '/posts'
 
+        if params.type
+            params.type = params.type.split(',').map(@expand).join ','
+
         req =
             url: url
             additional: params
