@@ -13,6 +13,7 @@ complete as possible, providing everything necessary from app registration to ev
 ## Compile it
 
 To compile it, you need CoffeeScript compiler:
+
 ```npm install -g coffee-script```
 
 Then, you can just compile all coffee files in the lib (`(cd lib && coffee -c \*.coffee)`) or import the libs from
@@ -25,22 +26,28 @@ aspects of the tent protocol.
 
 ## Error management
 Most functions have signatures like the following:
-```tentClient.moduleName.function( [ all required parameters ], function(err, [ results ]) {
 
-});```
+```
+tentClient.moduleName.function( [ all required parameters ], function(err, [ results ]) {
+
+});
+```
+
 The user should check that err is defined. In this case, the message should allow to find where the error is.
 
 ## Creation of client
+
 ```
-    var Tent = require('../lib/tent');
-    var entity = 'https://anyentity.tent.is';
-    var client = new Tent( entity );
+var Tent = require('../lib/tent');
+var entity = 'https://anyentity.tent.is';
+var client = new Tent( entity );
 ```
 
 ## App registration
+
 ```
-    // Registers the app
-    var app = {
+// Registers the app
+var app = {
       "name": "BigCorpAnalysisInc",
       "description": "Makes a lot of money with your data",
       "url": "http://app.example.com",
@@ -79,9 +86,11 @@ var code = '123456789', // retrieved from the callback
 client.app.tradeCode( code, state, function(err, userComponents) {
     // check for error
     // do something with the userComponents object (which contain the mac_key, mac_key_id, mac_key_algorithm).
-});```
+});
+```
 
 ## Credentials
+
 ```
 // Before your app closes, your credentials may have been saved somewhere.
 // To reuse them in the future, you can use the set*Credentials methods:
@@ -92,12 +101,14 @@ client.setAppCredentials( app_mac_key, app_mac_key_id );
 
 ## App methods
 ### Set id
+
 ```
 // You have received an app id when registering the app. It is necessary to use the app API.
 client.app.setId( '123456545ahfuek' );
 ```
 
 ### Get app
+
 ```
 // for retrieving the current registered app
 // WARNING: for this one, you need to have set an ID
@@ -115,6 +126,7 @@ client.app.get( '123456789ahfuek', function(err, appComponents) {
 ```
 
 ### Update app
+
 ```
 // update app with current id.
 // WARNING: for this one, you need to have set an ID
@@ -132,6 +144,7 @@ client.app.update( '123456789ahfuek', function(err, appComponents) {
 ```
 
 ### Delete app
+
 ```
 // delete app with current id.
 // WARNING: for this one, you need to have set an ID
@@ -148,6 +161,7 @@ client.app.delete( '123456789ahfuek', function(err, data) {
 ```
 
 ### Get Authentication URL
+
 ```
 client.app.getAuthUrl(function(err, authUrl, appComponents) {
     // authUrl is the OAuth URL
@@ -157,6 +171,7 @@ client.app.getAuthUrl(function(err, authUrl, appComponents) {
 
 ## Profile methods
 ### Get all profiles
+
 ```
 // Needs user credentials
 client.profile.get( function(err, profiles) {
@@ -165,6 +180,7 @@ client.profile.get( function(err, profiles) {
 ```
 
 ### Get a specific profile
+
 ```
 // Needs user credentials
 // Second arguments is an object representing the additional query string parameters
@@ -181,6 +197,7 @@ client.profile.getSpecific( 'basic', {version: "3"}, function( err, profile ) {
 ```
 
 ### Update a specific profile
+
 ```
 // Needs user credentials
 client.profile.update( 'basic', profileObject, function(err, profiles) {
@@ -189,6 +206,7 @@ client.profile.update( 'basic', profileObject, function(err, profiles) {
 ```
 
 ### Delete a specific profile
+
 ```
 // Needs user credentials
 var additionalParams = {version: '1'}; // These are additional query string params
@@ -211,6 +229,7 @@ Like profiles types, posts types are predefined to provide shortcuts to the user
 - *followers*
 
 ### Get posts
+
 ```
 // Without user credentials, this retrieves public posts.
 // With user credentials, it retrieves all posts, including private posts.
@@ -221,6 +240,7 @@ client.posts.get( {type: 'https://tent.io/types/post/essay/v0.1.0'}, function(er
 ```
 
 ### Create / update post
+
 ```
 // Needs user credentials.
 var post = {
@@ -243,6 +263,7 @@ client.posts.create( post, function(err, returnedPost) {
 ```
 
 ### Delete post
+
 ```
 // Needs user credentials
 // The second parameter is additional query string parameters, as an object.
