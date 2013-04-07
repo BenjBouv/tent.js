@@ -16,7 +16,7 @@ To compile it, you need CoffeeScript compiler:
 
 ```npm install -g coffee-script```
 
-Then, you can just compile all coffee files in the lib (`(cd lib && coffee -c \*.coffee)`) or import the libs from
+Then, you can just compile all coffee files in the lib (`(cd lib && coffee -c *.coffee)`) or import the libs from
 Coffee applications.
 
 # API
