@@ -59,7 +59,7 @@ class Application extends SubModule
     Application::States = {}
 
     getAuthUrl: (cb) =>
-        @client.getApiRoot err, apiRootUrl =>
+        @client.getApiRoot (err, apiRootUrl) =>
             if err
                 cb err
                 return
