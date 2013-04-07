@@ -26,8 +26,15 @@ class Application extends SubModule
                 needAuth: true
                 auth: @client.credentials.app
 
-            rcb = utils.makeGenericCallback cb
-            @call reqParam, rcb
+            @call reqParam, (err, h, data) =>
+                if err
+                    cb err
+                    return
+
+                appInfo = JSON.parse data
+                if @id and appInfo.id == @id
+                    @info = appInfo
+                cb null, appInfo
         @
 
     update: ( appInfo, rest... ) =>
