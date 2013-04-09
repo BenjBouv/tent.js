@@ -14,6 +14,9 @@ class Client
         @posts = new PostsModule @
         @profile = new ProfileModule @
 
+        @queue = []
+        @queueBusy = false
+
         @credentials = {}
 
     discovery: (cb) ->
@@ -42,7 +45,28 @@ class Client
 
         @
 
+    queueFree: ->
+        @queueBusy = false
+        @queueEmpty()
+        @
+
+    queueEmpty: ->
+        if not @queueBusy and @queue.length > 0
+            @queueBusy = true
+            f = @queue.pop()
+            f()
+        @
+
     getProfile: (cb) ->
+        @queue.push () =>
+            @getProfileLaunch (err, data) =>
+                cb err, data
+                @queueFree()
+
+        @queueEmpty()
+        @
+
+    getProfileLaunch: (cb) ->
         if @profiles
             cb null, @profiles
             return
@@ -57,12 +81,11 @@ class Client
                 method: 'GET'
             rcb = (err, headers, data) =>
                 @profiles = JSON.parse data
+                @queueFree()
                 cb null, @profiles
 
             r = new Request reqParam, rcb
             r.run()
-
-        @
 
     getApiRoot: (cb) ->
         @getProfile (err, p) ->
