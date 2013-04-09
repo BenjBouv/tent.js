@@ -26,8 +26,15 @@ class Application extends SubModule
                 needAuth: true
                 auth: @client.credentials.app
 
-            rcb = utils.makeGenericCallback cb
-            @call reqParam, rcb
+            @call reqParam, (err, h, data) =>
+                if err
+                    cb err
+                    return
+
+                appInfo = JSON.parse data
+                if @id and appInfo.id == @id
+                    @info = appInfo
+                cb null, appInfo
         @
 
     update: ( appInfo, rest... ) =>
@@ -59,7 +66,7 @@ class Application extends SubModule
     Application::States = {}
 
     getAuthUrl: (cb) =>
-        @client.getApiRoot err, apiRootUrl =>
+        @client.getApiRoot (err, apiRootUrl) =>
             if err
                 cb err
                 return
@@ -68,13 +75,17 @@ class Application extends SubModule
                 cb 'no application id!'
                 return
 
+            if not @info
+                cb 'no application info!'
+                return
+
             utils.generateUniqueToken (state) =>
                 @state = state
                 authUrl = apiRootUrl + '/oauth/authorize?client_id=' + @id +
                     '&redirect_uri=' + @info.redirect_uris[0] +
                     '&scope=' + Object.keys(@info.scopes).join(',') +
                     '&response_type=code' +
-                    '&state' + state +
+                    '&state=' + state +
                     '&tent_profile_info_types=all' + # TODO
                     '&tent_post_types=all' + # TODO
                     ''
@@ -104,6 +115,13 @@ class Application extends SubModule
     tradeCode: ( code, state, cb ) =>
         if not @id
             cb 'no application id!'
+            return
+        if not @state
+            cb 'no application state!'
+            return
+
+        if @state != state
+            cb 'state different than the one used in registration.'
             return
 
         reqParam =
