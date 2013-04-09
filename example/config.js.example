@@ -1,4 +1,4 @@
-exports.config = {
+module.exports = {
     // An entity we will use credentials for
     entity: 'http://url-entity-goes-here',
 
