@@ -65,7 +65,9 @@ var app = {
         "write_posts": "Writes random ads on your timeline.",
         "read_groups": "Communities are the first aim of the company.",
         "write_groups": "Advertises also your groups of friends"
-      }
+      },
+      "profile_info_types": ['core', 'basic'],
+      "post_types": ['status', 'essay']
     };
 
     client.app.register( app, function(err, oauthUrl, appComponents ) {

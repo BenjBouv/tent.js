@@ -79,16 +79,38 @@ class Application extends SubModule
                 cb 'no application info!'
                 return
 
+            # required parameters
+            if not @id or not @info.redirect_uri
+                cb 'missing required parameters when getting auth url: client_id, redirect_uri!'
+
+            scopes = @info.scopes || {}
+            scopes_str = Object.keys( scopes ).join ','
+
+            profiles = @profile_info_types || []
+            profiles_str = profiles.map(@client.profile.expand).join ','
+
+            posts = @post_types || []
+            posts_str = posts.map(@client.posts.expand).join ','
+
             utils.generateUniqueToken (state) =>
                 @state = state
                 authUrl = apiRootUrl + '/oauth/authorize?client_id=' + @id +
                     '&redirect_uri=' + @info.redirect_uris[0] +
-                    '&scope=' + Object.keys(@info.scopes).join(',') +
                     '&response_type=code' +
-                    '&state=' + state +
-                    '&tent_profile_info_types=all' + # TODO
-                    '&tent_post_types=all' + # TODO
-                    ''
+                    '&state=' + state
+
+                if scopes_str.length > 0
+                    authUrl += '&scope=' + scopes_str
+
+                if profiles_str.length > 0
+                    authUrl += '&tent_profile_info_types=' + profiles_str
+
+                if posts_str.length > 0
+                    authUrl += '&tent_post_types=' + posts_str
+
+                if @notification_url
+                    authUrl += '&tent_notification_url=' + @notification_url
+
                 cb null, authUrl, @info
         @
 
@@ -97,6 +119,10 @@ class Application extends SubModule
             url: '/apps'
             method: 'POST'
             body: JSON.stringify appInfo
+
+        @profile_info_types = appInfo.profile_info_types || []
+        @post_types = appInfo.post_types || []
+        @notification_url = appInfo.notification_url || ''
 
         rcb = (err, h, data) =>
             if err
