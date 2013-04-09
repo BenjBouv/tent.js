@@ -18,6 +18,8 @@ fs.readFile( 'credentials.user.js', function(err, data) {
     client.profile.getSpecific('basic', {}, function(err, profile) {
 
         if(err) { console.error( err ); return; }
+        var profileText = JSON.stringify(profile)
+        var oldProfile = JSON.parse( profileText ); // deep copy
         console.log('Basic profile: ' + JSON.stringify(profile));
 
         var newProfile = profile;
@@ -27,7 +29,6 @@ fs.readFile( 'credentials.user.js', function(err, data) {
             if(err) { console.error('ERROR: '+ err ); return; }
             console.log('Enhanced updated profile: ' + JSON.stringify(enhancedProfile) );
 
-            var oldProfile = enhancedProfile[ client.profile.TYPES.basic.url ];
             client.profile.delete('basic', {}, function(err) {
                 if(err) { console.error( err ); return; }
 
