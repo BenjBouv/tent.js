@@ -10,19 +10,33 @@ fs.readFile( 'credentials.app.js', function(_, data) {
     client.setAppCredentials( cred.mac_key, cred.mac_key_id );
     client.app.setId( cred.id );
 
-    client.app.get(function(err, app) {
-       if(err) console.error(err);
-       else {
-            console.log('app: ' + JSON.stringify(app) + '\n');
+    client.app.getAuthUrl(function(err, authUrl) {
+        if(err) {
+            console.error( err );
+            return
+        }
+        console.log('Auth url: ' + authUrl);
+        client.app.getAuthUrl( function(err, sameAuthUrl) {
+            if(err) {
+                console.error( err );
+                return
+            }
+            console.log('Same auth url (state should be different): ' + sameAuthUrl);
+            client.app.get(function(err, app) {
+               if(err) console.error(err);
+               else {
+                    console.log('app: ' + JSON.stringify(app) + '\n');
 
-            var appInfo = config.app;
-            appInfo.name = 'DataStalkerInc';
-            appInfo.scopes.write_profile = 'Advertise your profile for higher results!';
-            client.app.update( appInfo, function(err2, app2) {
-                if( err2 ) { console.error(err2); return; }
-                console.log("updated app: " + JSON.stringify(app2) + '\n');
+                    var appInfo = config.app;
+                    appInfo.name = 'DataStalkerInc';
+                    appInfo.scopes.write_profile = 'Advertise your profile for higher results!';
+                    client.app.update( appInfo, function(err2, app2) {
+                        if( err2 ) { console.error(err2); return; }
+                        console.log("updated app: " + JSON.stringify(app2) + '\n');
+                    });
+
+               }
             });
-
-       }
+        } );
     });
 });
