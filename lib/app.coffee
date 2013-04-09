@@ -81,43 +81,52 @@ class Application extends SubModule
                 cb 'no application id!'
                 return
 
+            next = =>
+                # required parameters
+                if not @id or not @info.redirect_uris
+                    cb 'missing required parameters when getting auth url: client_id, redirect_uris!'
+                    return
+
+                scopes = @info.scopes || {}
+                scopes_str = Object.keys( scopes ).join ','
+
+                profiles = @profile_info_types || []
+                profiles_str = profiles.map(@client.profile.expand).join ','
+
+                posts = @post_types || []
+                posts_str = posts.map(@client.posts.expand).join ','
+
+                utils.generateUniqueToken (state) =>
+                    @state = state
+                    authUrl = apiRootUrl + '/oauth/authorize?client_id=' + @id +
+                        '&redirect_uri=' + @info.redirect_uris[0] +
+                        '&response_type=code' +
+                        '&state=' + state
+
+                    if scopes_str.length > 0
+                        authUrl += '&scope=' + scopes_str
+
+                    if profiles_str.length > 0
+                        authUrl += '&tent_profile_info_types=' + profiles_str
+
+                    if posts_str.length > 0
+                        authUrl += '&tent_post_types=' + posts_str
+
+                    if @notification_url
+                        authUrl += '&tent_notification_url=' + @notification_url
+
+                    cb null, authUrl, @info
+
             if not @info
-                cb 'no application info!'
-                return
+                @get (err, appInfo) =>
+                    if err
+                        cb err
+                        return
 
-            # required parameters
-            if not @id or not @info.redirect_uri
-                cb 'missing required parameters when getting auth url: client_id, redirect_uri!'
-
-            scopes = @info.scopes || {}
-            scopes_str = Object.keys( scopes ).join ','
-
-            profiles = @profile_info_types || []
-            profiles_str = profiles.map(@client.profile.expand).join ','
-
-            posts = @post_types || []
-            posts_str = posts.map(@client.posts.expand).join ','
-
-            utils.generateUniqueToken (state) =>
-                @state = state
-                authUrl = apiRootUrl + '/oauth/authorize?client_id=' + @id +
-                    '&redirect_uri=' + @info.redirect_uris[0] +
-                    '&response_type=code' +
-                    '&state=' + state
-
-                if scopes_str.length > 0
-                    authUrl += '&scope=' + scopes_str
-
-                if profiles_str.length > 0
-                    authUrl += '&tent_profile_info_types=' + profiles_str
-
-                if posts_str.length > 0
-                    authUrl += '&tent_post_types=' + posts_str
-
-                if @notification_url
-                    authUrl += '&tent_notification_url=' + @notification_url
-
-                cb null, authUrl, @info
+                    @info = appInfo
+                    next()
+            else
+                next()
         @
 
     register: (appInfo, cb) =>
