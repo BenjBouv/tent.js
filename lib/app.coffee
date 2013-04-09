@@ -32,6 +32,12 @@ class Application extends SubModule
                     return
 
                 appInfo = JSON.parse data
+
+                if appInfo.authorizations and appInfo.authorizations.length > 0
+                    @profile_info_types = appInfo.authorizations[0].profile_info_types
+                    @post_types = appInfo.authorizations[0].post_types
+                    @notification_url = appInfo.authorizations[0].notification_url
+
                 if @id and appInfo.id == @id
                     @info = appInfo
                 cb null, appInfo
