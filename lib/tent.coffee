@@ -88,14 +88,22 @@ class Client
             r.run()
 
     getApiRoot: (cb) ->
-        @getProfile (err, p) ->
+        if @apiRoot
+            cb null, @apiRoot
+            return
+
+        @getProfile (err, p) =>
             if err
                 cb err
                 return
 
             core = p[ "https://tent.io/types/info/core/v0.1.0" ]
             if core and core.servers and core.servers.length > 0
-                cb null, core.servers[0]
+                @apiRoot = core.servers[0]
+                if @apiRoot[ @apiRoot.length-1 ] == '/'
+                    @apiRoot = @apiRoot.slice 0, @apiRoot.length - 1
+
+                cb null, @apiRoot
             else
                 cb 'profile key error: no core or servers'
         @
