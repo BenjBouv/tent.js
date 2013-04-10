@@ -5,6 +5,8 @@ Request = require './requests'
 AppModule = require './app'
 PostsModule = require './posts'
 ProfileModule = require './profile'
+FollowingModule = require './following'
+FollowerModule = require './followers'
 
 Credentials = require './credentials'
 
@@ -13,6 +15,8 @@ class Client
         @app = new AppModule @
         @posts = new PostsModule @
         @profile = new ProfileModule @
+        @followings = new FollowingModule @
+        @followers = new FollowerModule @
 
         @queue = []
         @queueBusy = false
