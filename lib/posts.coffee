@@ -102,12 +102,7 @@ class Posts extends SubModule
             body: JSON.stringify params
             needAuth: true
             auth: @client.credentials.user
-        rcb = (err, headers, data) ->
-            if err
-                cb err
-            else
-                cb null, JSON.parse data
-
+        rcb = utils.makeGenericCallback cb
         @call reqParam, rcb
         @
 

@@ -6,7 +6,7 @@ exports.makeGenericCallback = (cb) ->
         if err
             cb err
         else
-            cb null, JSON.parse data
+            cb null, data
 
 exports.generateUniqueToken = (cb) ->
     crypto.randomBytes 32, (_, buf) ->

@@ -47,7 +47,7 @@ class Profile extends SubModule
             if err
                 cb err
             else
-                @client.profiles = JSON.parse data
+                @client.profiles = data
                 cb null, @client.profiles
 
         @call reqParam, rcb

@@ -48,7 +48,12 @@ class Request
                 if res.headers.status and res.headers.status.substring(0, 3) != '200'
                     @cb "Status isn't 200 OK but " + res.headers.status + "\nData received: " + data
                 else
-                    @cb null, res.headers, data
+                    try
+                        if data.length > 0
+                            data = JSON.parse data
+                        @cb null, res.headers, data
+                    catch err
+                        @cb 'when parsing JSON response: ' + err
                 @
 
         req.on 'error', @cb

@@ -31,8 +31,7 @@ class Application extends SubModule
                     cb err
                     return
 
-                appInfo = JSON.parse data
-
+                appInfo = data
                 if appInfo.authorizations and appInfo.authorizations.length > 0
                     @profile_info_types = appInfo.authorizations[0].profile_info_types
                     @post_types = appInfo.authorizations[0].post_types
@@ -144,7 +143,7 @@ class Application extends SubModule
                 cb err
                 return
 
-            a = @info = JSON.parse data
+            a = @info = data
             @id = @info.id
 
             @client.setAppCredentials @info.mac_key, @info.mac_key_id
@@ -179,7 +178,7 @@ class Application extends SubModule
                 cb err
                 return
 
-            response = JSON.parse data
+            response = data
             @client.setUserCredentials response.mac_key, response.access_token
             cb null, @client.credentials.user
 

@@ -84,7 +84,7 @@ class Client
                 url: pURL
                 method: 'GET'
             rcb = (err, headers, data) =>
-                @profiles = JSON.parse data
+                @profiles = data
                 @queueFree()
                 cb null, @profiles
 
