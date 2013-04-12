@@ -44,7 +44,9 @@ class Client
             @profileUrl = ( ""+@profileUrl ).replace /[<>]/g, ''
             cb null, @profileUrl
 
-        r = new Request reqParam, rcb
+        r = new Request reqParam, rcb,
+            "Accept": "*/*"
+
         r.run()
 
         @
