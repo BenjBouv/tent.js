@@ -178,6 +178,10 @@ class Application extends SubModule
                 cb err
                 return
 
+            if not data.mac_key or not data.access_token
+                cb 'When trading code, no mac_key or access_token were found!'
+                return
+
             response = data
             @client.setUserCredentials response.mac_key, response.access_token
             cb null, @client.credentials.user
