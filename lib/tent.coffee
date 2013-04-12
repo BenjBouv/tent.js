@@ -42,6 +42,8 @@ class Client
 
             @profileUrl = /<[^>]*>/.exec headers.link
             @profileUrl = ( ""+@profileUrl ).replace /[<>]/g, ''
+            if @profileUrl[0] == '/'
+                @profileUrl = @entity + @profileUrl
             cb null, @profileUrl
 
         r = new Request reqParam, rcb,
