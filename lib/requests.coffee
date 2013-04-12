@@ -7,7 +7,7 @@ utils = require './utils'
 
 class Request
 
-    constructor: (params, @cb) ->
+    constructor: (params, @cb, headers) ->
 
         throw new Error('no cible defined') unless params.url
         throw new Error('no method defined') unless params.method
@@ -17,7 +17,7 @@ class Request
 
         @opts = url.parse params.url
         @opts.method = params.method
-        @opts.headers =
+        @opts.headers = headers ||
             "Accept": "application/vnd.tent.v0+json"
 
         if params.body
