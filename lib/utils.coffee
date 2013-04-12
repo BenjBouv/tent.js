@@ -28,7 +28,7 @@ getPort = (opts) ->
 
 exports.createHmacAuth = ( opts, mk, mkid ) ->
     path = opts.path
-    host = opts.host
+    host = opts.host.split(':')[0]
     method = opts.method
     port = getPort opts
 
