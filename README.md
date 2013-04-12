@@ -239,6 +239,11 @@ Like profiles types, posts types are predefined to provide shortcuts to the user
 client.posts.get( {type: 'https://tent.io/types/post/essay/v0.1.0'}, function(err, posts) {
 
 });
+
+// One can also retrieve a post with a specific id
+client.posts.getById ( 'afjeizl456gr486gr', {}, function(err, post) {
+
+});
 ```
 
 ### Create / update post

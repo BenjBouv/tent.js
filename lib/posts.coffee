@@ -62,11 +62,9 @@ class Posts extends SubModule
         found = Posts::TYPES[type]
         if found then found.url else type
 
-    get: ( params, cb ) =>
-        url = '/posts'
-
-        if params.type
-            params.type = params.type.split(',').map(@expand).join ','
+    getBase: ( params, cb, url ) =>
+        if params.post_types
+            params.post_types = params.post_types.split(',').map(@expand).join ','
 
         req =
             url: url
@@ -81,6 +79,12 @@ class Posts extends SubModule
 
         @call req, rcb
         @
+
+    get: (params, cb) ->
+        @getBase params, cb, '/posts'
+
+    getById: ( id, params, cb ) ->
+        @getBase params, cb, '/posts/' + qs.escape id
 
     createOrUpdate: ( params, cb, update ) =>
         if not @checkRequiredFields params.type, params
