@@ -36,6 +36,7 @@ class Request
         utils.debug 'requests.headers', @opts
 
         reqMeth = if utils.isSecured @opts then https.request else http.request
+        cbCalled = false
         req = reqMeth @opts, (res) =>
             data = ''
 
@@ -43,7 +44,12 @@ class Request
                 data += chunk
 
             res.on 'end', () =>
+                if cbCalled
+                    return
+
+                cbCalled = true
                 utils.debug 'response.headers', res.headers
+                utils.debug 'response.body', data
 
                 if res.headers.status and res.headers.status.substring(0, 3) != '200'
                     @cb "Status isn't 200 OK but " + res.headers.status + "\nData received: " + data
@@ -56,7 +62,14 @@ class Request
                         @cb 'when parsing JSON response: ' + err
                 @
 
-        req.on 'error', @cb
+        req.on 'error', (err) ->
+            if cbCalled
+                return
+
+            if err.code != 'HPE_INVALID_CONSTANT'
+                cbCalled = true
+                cb err
+
 
         if @body then req.end @body else req.end()
 
