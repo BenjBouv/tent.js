@@ -116,7 +116,7 @@ class Application extends SubModule
 
                     cb null, authUrl, @info
 
-            if not @info
+            if not @info or not @info.name
                 @get (err, appInfo) =>
                     if err
                         cb err
