@@ -1,3 +1,5 @@
+Hawk = require 'hawk'
+
 utils = require './utils'
 Credentials = require './credentials'
 Request = require './requests'
@@ -71,6 +73,23 @@ class Application extends SubModule
     Application::States = {}
 
     getAuthUrl: (cb) =>
+
+        if not @id
+            cb 'No app id in getAuthUrl!'
+            return
+
+        @client.getMeta (err, meta) =>
+            if err
+                cb err
+                return
+
+            utils.generateUniqueToken (state) =>
+                @state = state
+                url = @prefixEntity meta.content.servers[0].urls.oauth_auth
+                url += '?client_id=' + @id + '&state=' + @state
+                cb null, url
+
+        ###
         @client.getApiRoot (err, apiRootUrl) =>
             if err
                 cb err
@@ -126,67 +145,92 @@ class Application extends SubModule
                     next()
             else
                 next()
+        ###
         @
 
     register: (appInfo, cb) =>
-        reqParam =
-            url: '/apps'
-            method: 'POST'
-            body: JSON.stringify appInfo
-
-        @profile_info_types = appInfo.profile_info_types || []
-        @post_types = appInfo.post_types || []
-        @notification_url = appInfo.notification_url || ''
+        appPost =
+            type: 'https://tent.io/types/app/v0#'
+            content: appInfo
+            permissions:
+                public: false
 
         rcb = (err, h, data) =>
             if err
                 cb err
                 return
 
-            a = @info = data
+            if not h.link
+                cb 'No link in headers'
+                return
+
+            link = @prefixEntity utils.parseLink(h.link).link
+
+            @info = data
             @id = @info.id
 
-            @client.setAppCredentials @info.mac_key, @info.mac_key_id
-            @getAuthUrl cb
+            # Get credentials post
+            getCredParam =
+                url: link
+                method: 'GET'
 
-        @call reqParam, rcb
+            cb2 = (erz, headerz, dataz) =>
+                if erz
+                    cb erz
+                    return
+
+                @credentials = dataz
+                cb null, @info, @credentials
+
+            new Request(getCredParam, cb2).run()
+
+        @newPost appPost, rcb
         @
 
     tradeCode: ( code, state, cb ) =>
         if not @id
-            cb 'no application id!'
+            cb 'tradeCode: no application id!'
             return
+
+        ###
         if not @state
-            cb 'no application state!'
+            cb 'tradeCode: no application state!'
             return
 
         if @state != state
-            cb 'state different than the one used in registration.'
+            cb 'tradeCode: state different than the one used in registration.'
             return
+        ###
+        # TODO for test purpose only
 
-        reqParam =
-            url: '/apps/' + @id + '/authorizations'
-            method: 'POST'
-            body: JSON.stringify
-                code: code
-                token_type: 'mac'
-            needAuth: true
-            auth: @client.credentials.app
-
-        rcb = (err, h, data) =>
+        @client.getMeta (err, meta) =>
             if err
                 cb err
                 return
 
-            if not data.mac_key or not data.access_token
-                cb 'When trading code, no mac_key or access_token were found!'
-                return
+            url = @prefixEntity meta.content.servers[0].urls.oauth_token
+            reqParam =
+                url: url
+                method: 'POST'
+                body: JSON.stringify
+                    code: code
+                    token_type: "https://tent.io/oauth/hawk-token"
 
-            response = data
-            @client.setUserCredentials response.mac_key, response.access_token
-            cb null, @client.credentials.user
+            credentials =
+                id: @credentials.id
+                key: @credentials.content.hawk_key
+                algorithm: @credentials.content.hawk_algorithm
 
-        @call reqParam, rcb
+            headers =
+                'Content-Type': 'application/json'
+                'Accept': 'application/json'
+                'Authorization': Hawk.client.header(url, 'POST',
+                    credentials: credentials
+                    app: @info.id
+                    ).field
+
+            new Request(reqParam, utils.makeGenericCallback(cb), headers).run()
+
         @
 
 

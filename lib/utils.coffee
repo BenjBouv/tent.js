@@ -8,6 +8,17 @@ exports.makeGenericCallback = (cb) ->
         else
             cb null, data
 
+exports.parseLink = (link) ->
+    linkpart = /<([^>]*)>/.exec link
+    relpart = /; rel="(.*)"/.exec link
+
+    if linkpart.length < 1 or relpart.length < 1 then return null
+
+    return {
+        link: linkpart[1]
+        rel: relpart[1]
+    }
+
 exports.generateUniqueToken = (cb) ->
     crypto.randomBytes 32, (_, buf) ->
         token = buf.toString 'hex'

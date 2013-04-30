@@ -18,12 +18,15 @@ class Request
         @opts = url.parse params.url
         @opts.method = params.method
         @opts.headers = headers ||
-            "Accept": "application/vnd.tent.v0+json"
+            "Accept": "application/vnd.tent.post.v0+json"
 
         if params.body
             @body = params.body
-            @opts.headers['Content-Type'] = "application/vnd.tent.v0+json"
             @opts.headers['Content-Length'] = @body.length.toString()
+
+            if not headers or not headers['Content-Type']
+                @opts.headers['Content-Type'] = 'application/vnd.tent.post.v0+json; type="' + params.contentType + '"'
+
         else
             @body = null
 

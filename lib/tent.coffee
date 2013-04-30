@@ -23,10 +23,10 @@ class Client
 
         @credentials = {}
 
+    prefixEntity: (link) ->
+        if link[0] == '/' then return @entity + link else return link
+
     discovery: (cb) ->
-        if @profileUrl
-            cb null, @profileUrl
-            return
 
         reqParam =
             url: @entity
@@ -40,11 +40,21 @@ class Client
                 cb 'Link section not found in headers during discovery'
                 return
 
-            @profileUrl = /<[^>]*>/.exec headers.link
-            @profileUrl = ( ""+@profileUrl ).replace /[<>]/g, ''
-            if @profileUrl[0] == '/'
-                @profileUrl = @entity + @profileUrl
-            cb null, @profileUrl
+            metaURL = utils.parseLink(headers.link).link
+            metaURL = @prefixEntity metaURL
+
+            # Get meta post
+            getMetaParams =
+                url: metaURL
+                method: 'GET'
+
+            cb2 = (erz, headerz, dataz) =>
+                if erz then cb erz
+                else
+                    @meta = dataz
+                    cb null, @meta
+
+            new Request( getMetaParams, cb2 ).run()
 
         r = new Request reqParam, rcb,
             "Accept": "*/*"
@@ -94,6 +104,13 @@ class Client
 
             r = new Request reqParam, rcb
             r.run()
+
+    getMeta: (cb) ->
+        if @meta
+            cb null, @meta
+            return
+
+        @discovery cb
 
     getApiRoot: (cb) ->
         if @apiRoot
