@@ -7,32 +7,57 @@ utils = require './utils'
 
 class Request
 
-    constructor: (params, @cb, headers) ->
+    Request::CONTENT_TYPE =
+        post: 'application/vnd.tent.post.v0+json'
+        feed: 'application/vnd.tent.posts-feed.v0+json'
+        error: 'application/vnd.tent.error.v0+json'
+        attachment: 'multipart/form-data'
 
-        throw new Error('no cible defined') unless params.url
-        throw new Error('no method defined') unless params.method
+    constructor: (params, @cb, headers, appId) ->
+
+        if not params.url
+            @cb 'Request: no cible defined.'
+            return
+        if not params.method
+            @cb 'Request: no method defined.'
+            return
+        if params.needAuth and not params.auth
+            @cb 'Request needs authentication, but no credentials were given.'
+            return
 
         if params.additional and Object.keys(params.additional).length > 0
             params.url += '?' + qs.stringify( params.additional )
 
         @opts = url.parse params.url
         @opts.method = params.method
-        @opts.headers = headers ||
-            "Accept": "application/vnd.tent.post.v0+json"
+        @opts.headers = headers || {}
 
+        # Accept field
+        if not headers or not headers.accept
+            if params.accept
+                @opts.headers['Accept'] = Request::CONTENT_TYPE[ params.accept ] || null
+            else
+                console.warn 'No accept field in request (' + params.method + ' ' + params.url + ' )'
+
+        # Body, body length and content type
         if params.body
             @body = params.body
             @opts.headers['Content-Length'] = @body.length.toString()
 
             if not headers or not headers['Content-Type']
-                @opts.headers['Content-Type'] = 'application/vnd.tent.post.v0+json; type="' + params.contentType + '"'
+                contentType = Request::CONTENT_TYPE[ params.contentType ] || null
+                if params.postType
+                    contentType += '; type="' + params.postType + '"'
+                @opts.headers['Content-Type'] = contentType
 
         else
             @body = null
 
-        if params.auth
-            @opts.headers['Authorization'] = params.auth.getAuthorization @opts
+        # Authentication
+        if params.auth and appId
+            @opts.headers['Authorization'] = params.auth.make params.url, params.method, appId
 
+        @
 
     run: () ->
 
@@ -54,7 +79,7 @@ class Request
                 utils.debug 'response.headers', res.headers
                 utils.debug 'response.body', data
 
-                if res.headers.status and res.headers.status.substring(0, 3) != '200'
+                if res.statusCode and res.statusCode != 200
                     @cb "Status isn't 200 OK but " + res.headers.status + "\nData received: " + data
                 else
                     try
@@ -62,20 +87,19 @@ class Request
                             data = JSON.parse data
                         @cb null, res.headers, data
                     catch err
-                        @cb 'when parsing JSON response: ' + err
+                        @cb 'when parsing JSON response: ' + err + '\n' + new Error().stack
                 @
 
         req.on 'error', (err) ->
             if cbCalled
+                console.error 'Request: callback already called, but error received: ' + err
                 return
 
             if err.code != 'HPE_INVALID_CONSTANT'
                 cbCalled = true
                 cb err
 
-
         if @body then req.end @body else req.end()
-
         @
 
 module.exports = Request

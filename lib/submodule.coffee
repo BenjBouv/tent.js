@@ -3,27 +3,14 @@ Request = require './requests'
 class Submodule
     constructor: (@client) ->
 
-    prefixEntity: (sthg) ->
-        @client.prefixEntity sthg
-
-    newPost: (postObj, cb, method) ->
-        @client.getMeta (err, meta) =>
+    call: (reqParam, cb, headers) ->
+        @client.getMeta (err, _) =>
             if err
                 cb err
                 return
 
-            url = @client.prefixEntity meta.content.servers[0].urls.new_post
-            reqParam =
-                url: url
-                method: method || 'POST'
-                contentType: postObj.type
-                body: JSON.stringify postObj
-
-            # TODO take care of auth?
-            if reqParam.needAuth and not reqParam.auth
-                throw new Error 'Credentials not found'
-
-            new Request(reqParam, cb).run()
-        @
+            if reqParam.needAuth then createMethod = 'createAuth' else createMethod = 'create'
+            req = @client.reqFactory[createMethod] reqParam, cb, headers
+            req.run()
 
 module.exports = Submodule

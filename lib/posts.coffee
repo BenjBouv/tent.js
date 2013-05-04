@@ -1,6 +1,7 @@
 qs = require 'querystring'
 
 utils = require './utils'
+Request = require './requests'
 SubModule = require './submodule'
 
 class Posts extends SubModule
@@ -8,8 +9,49 @@ class Posts extends SubModule
     Posts::TYPES =
         status:
             required: []
-            url: 'https://tent.io/types/post/status/v0.1.0'
+            url: 'https://tent.io/types/status/v0#'
+        app:
+            required: []
+            url: 'https://tent.io/types/app/v0#'
 
+    get: (params, cb) ->
+        reqParam =
+            url: 'posts_feed'
+            additional: params
+            accept: 'feed'
+            method: 'GET'
+            appId: @client.app.id
+            auth: @client.credentials.user # TODO facultative, for public posts
+
+        @call reqParam, utils.makeGenericCallback cb
+
+    spawnParams: (postObj, method) ->
+        method ?= 'POST'
+        reqParam =
+            url: 'new_post'
+            method: method
+            contentType: 'post'
+            postType: postObj.type
+            body: JSON.stringify postObj
+        return reqParam
+
+    createApp: (app, cb) ->
+        app.type = @expand app.type
+        params = @spawnParams app, 'POST'
+        @call params, cb
+
+    create: (postObj, cb, method ) ->
+        postObj.type = @expand postObj.type
+        # TODO check that every required field is present
+
+        params = @spawnParams postObj, method
+        params.needAuth = true
+        params.auth = @client.credentials?.user || null
+
+        @call params, utils.makeGenericCallback cb
+        @
+
+        ###
         essay:
             required: ['body']
             url: 'https://tent.io/types/post/essay/v0.1.0'
@@ -41,6 +83,7 @@ class Posts extends SubModule
         followers:
             required: ['id', 'entity', 'action']
             url: 'https://tent.io/types/post/follower/v0.1.0'
+        ###
 
     Posts::REQUIRED_BY_ALL = ['type', 'content', 'permissions']
 
@@ -61,74 +104,5 @@ class Posts extends SubModule
     expand: ( type ) ->
         found = Posts::TYPES[type]
         if found then found.url else type
-
-    getBase: ( params, cb, url ) =>
-        if params.post_types
-            params.post_types = params.post_types.split(',').map(@expand).join ','
-
-        req =
-            url: url
-            additional: params
-            method: 'GET'
-
-        if @client.credentials.user
-            req.needAuth = true
-            req.auth = @client.credentials.user
-
-        rcb = utils.makeGenericCallback cb
-
-        @call req, rcb
-        @
-
-    get: (params, cb) ->
-        @getBase params, cb, '/posts'
-
-    getById: ( id, params, cb ) ->
-        @getBase params, cb, '/posts/' + qs.escape id
-
-    createOrUpdate: ( params, cb, update ) =>
-        if not @checkRequiredFields params.type, params
-            cb 'Missing field when creating or updating post.'
-            return
-
-        url = '/posts'
-
-        if update
-            method = 'PUT'
-            url += '/' + qs.escape update
-        else
-            method = 'POST'
-
-        params.type = @expand params.type
-        reqParam =
-            url: url
-            method: method
-            body: JSON.stringify params
-            needAuth: true
-            auth: @client.credentials.user
-        rcb = utils.makeGenericCallback cb
-        @call reqParam, rcb
-        @
-
-    create: (params, cb) ->
-        @createOrUpdate params, cb
-        @
-
-    update: (id, params, cb) ->
-        @createOrUpdate params, cb, id
-        @
-
-    delete: (id, params, cb) ->
-        url = '/posts/' + qs.escape id
-
-        reqParam =
-            url: url
-            additional: params
-            method: 'DELETE'
-            needAuth: true
-            auth: @client.credentials.user
-
-        @call reqParam, cb
-        @
 
 module.exports = Posts

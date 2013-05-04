@@ -1,76 +1,8 @@
-Hawk = require 'hawk'
-
 utils = require './utils'
 Credentials = require './credentials'
-Request = require './requests'
 SubModule = require './submodule'
 
 class Application extends SubModule
-
-    setId: (id) ->
-        @id = id
-        @
-
-    _getId: ( args, cb ) ->
-        if args.length == 2
-            cb( args[0], args[1] )
-        else
-            if not @id
-                throw new Error 'no application id!'
-            cb( @id, args[0] )
-        @
-
-    get: ( ) =>
-        @_getId arguments, (id, cb) =>
-            reqParam =
-                url: '/apps/' + id
-                method: 'GET'
-                needAuth: true
-                auth: @client.credentials.app
-
-            @call reqParam, (err, h, data) =>
-                if err
-                    cb err
-                    return
-
-                appInfo = data
-                if appInfo.authorizations and appInfo.authorizations.length > 0
-                    @profile_info_types = appInfo.authorizations[0].profile_info_types
-                    @post_types = appInfo.authorizations[0].post_types
-                    @notification_url = appInfo.authorizations[0].notification_url
-
-                if @id and appInfo.id == @id
-                    @info = appInfo
-                cb null, appInfo
-        @
-
-    update: ( appInfo, rest... ) =>
-        @_getId rest, (id, cb) =>
-
-            reqParam =
-                url: '/apps/' + id
-                method: 'PUT'
-                body: JSON.stringify appInfo
-                needAuth: true
-                auth: @client.credentials.app
-
-            rcb = utils.makeGenericCallback cb
-            @call reqParam, rcb
-        @
-
-    delete: ( ) =>
-        @_getId arguments, (id, cb) =>
-            reqParam =
-                url: '/apps/' + id
-                method: 'DELETE'
-                needAuth: true
-                auth: @client.credentials.app
-
-            rcb = utils.makeGenericCallback cb
-            @call reqParam, rcb
-        @
-
-    Application::States = {}
 
     getAuthUrl: (cb) =>
 
@@ -85,77 +17,21 @@ class Application extends SubModule
 
             utils.generateUniqueToken (state) =>
                 @state = state
-                url = @prefixEntity meta.content.servers[0].urls.oauth_auth
+                urlWrapper =
+                    url: 'oauth_auth'
+                url = @client.reqFactory.prepare(urlWrapper).url
                 url += '?client_id=' + @id + '&state=' + @state
                 cb null, url
-
-        ###
-        @client.getApiRoot (err, apiRootUrl) =>
-            if err
-                cb err
-                return
-
-            if not @id
-                cb 'no application id!'
-                return
-
-            next = =>
-                # required parameters
-                if not @id or not @info.redirect_uris
-                    cb 'missing required parameters when getting auth url: client_id, redirect_uris!'
-                    return
-
-                scopes = @info.scopes || {}
-                scopes_str = Object.keys( scopes ).join ','
-
-                profiles = @profile_info_types || []
-                profiles_str = profiles.map(@client.profile.expand).join ','
-
-                posts = @post_types || []
-                posts_str = posts.map(@client.posts.expand).join ','
-
-                utils.generateUniqueToken (state) =>
-                    @state = state
-                    authUrl = apiRootUrl + '/oauth/authorize?client_id=' + @id +
-                        '&redirect_uri=' + @info.redirect_uris[0] +
-                        '&response_type=code' +
-                        '&state=' + state
-
-                    if scopes_str.length > 0
-                        authUrl += '&scope=' + scopes_str
-
-                    if profiles_str.length > 0
-                        authUrl += '&tent_profile_info_types=' + profiles_str
-
-                    if posts_str.length > 0
-                        authUrl += '&tent_post_types=' + posts_str
-
-                    if @notification_url
-                        authUrl += '&tent_notification_url=' + @notification_url
-
-                    cb null, authUrl, @info
-
-            if not @info or not @info.name
-                @get (err, appInfo) =>
-                    if err
-                        cb err
-                        return
-
-                    @info = appInfo
-                    next()
-            else
-                next()
-        ###
         @
 
     register: (appInfo, cb) =>
         appPost =
-            type: 'https://tent.io/types/app/v0#'
+            type: 'app'
             content: appInfo
             permissions:
                 public: false
 
-        rcb = (err, h, data) =>
+        rcb = (err, h, appPostResponse) =>
             if err
                 cb err
                 return
@@ -164,74 +40,60 @@ class Application extends SubModule
                 cb 'No link in headers'
                 return
 
-            link = @prefixEntity utils.parseLink(h.link).link
-
-            @info = data
-            @id = @info.id
+            link = utils.parseLink(h.link).link
+            @info = appPostResponse
+            @client.setAppId appPostResponse.id
 
             # Get credentials post
             getCredParam =
                 url: link
                 method: 'GET'
+                accept: 'post'
 
-            cb2 = (erz, headerz, dataz) =>
+            cb2 = (erz, headerz, appCredentials) =>
                 if erz
                     cb erz
                     return
 
-                @credentials = dataz
-                cb null, @info, @credentials
+                @client.setAppCredentials appCredentials
+                cb null, @info, appCredentials
 
-            new Request(getCredParam, cb2).run()
+            @call getCredParam, cb2
 
-        @newPost appPost, rcb
+        @client.posts.createApp appPost, rcb
         @
 
     tradeCode: ( code, state, cb ) =>
         if not @id
-            cb 'tradeCode: no application id!'
+            cb 'tradeCode: no application id!\n' + new Error().stack
             return
 
         ###
         if not @state
-            cb 'tradeCode: no application state!'
+            cb 'tradeCode: no application state!\n' + new Error().stack
             return
 
         if @state != state
-            cb 'tradeCode: state different than the one used in registration.'
+            cb 'tradeCode: state different than the one used in registration.\n' + new Error().stack
             return
         ###
         # TODO for test purpose only
 
-        @client.getMeta (err, meta) =>
-            if err
-                cb err
-                return
+        reqParam =
+            url: 'oauth_token'
+            method: 'POST'
+            body: JSON.stringify
+                code: code
+                token_type: Credentials.types['hawk']
 
-            url = @prefixEntity meta.content.servers[0].urls.oauth_token
-            reqParam =
-                url: url
-                method: 'POST'
-                body: JSON.stringify
-                    code: code
-                    token_type: "https://tent.io/oauth/hawk-token"
+            needAuth: true
+            auth: @client.credentials.app
 
-            credentials =
-                id: @credentials.id
-                key: @credentials.content.hawk_key
-                algorithm: @credentials.content.hawk_algorithm
+        headers =
+            'Content-Type': 'application/json'
+            'Accept': 'application/json'
 
-            headers =
-                'Content-Type': 'application/json'
-                'Accept': 'application/json'
-                'Authorization': Hawk.client.header(url, 'POST',
-                    credentials: credentials
-                    app: @info.id
-                    ).field
-
-            new Request(reqParam, utils.makeGenericCallback(cb), headers).run()
-
+        @call reqParam, utils.makeGenericCallback(cb), headers
         @
-
 
 module.exports = Application
