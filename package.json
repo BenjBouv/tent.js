@@ -1,0 +1,11 @@
+{
+  "name": "tent.js",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "node app"
+  },
+  "dependencies": {
+    "hawk": "*"
+  }
+}
