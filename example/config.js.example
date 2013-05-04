@@ -5,24 +5,13 @@ module.exports = {
     // An entity that we don't need to use credentials for(for retrieving public posts, etc.)
     stalkedEntity: 'https://anotherEntity.campr.me',
 
-    app: tentapp = {
-      "name": "BigCorpAnalysisInc",
-      "description": "Makes a lot of money with your data",
-      "url": "http://app.example.com",
-      "redirect_uris": [
-        "http://app.example.com/callback"
-      ],
-      "scopes": {
-        "read_profile": "Reads your profile and sells your personal information to big companies.",
-        "write_profile": "Sponsorizes your biography with a brand name!",
-        "read_followers": "Learns from your contacts to enhance understanding you!",
-        "write_followers": "Block your contacts which are not bankable.",
-        "read_followings": "Which of our concurrents are tracking you? That interests us.",
-        "write_followings": "Adds public trademarks followers to your friends list.",
-        "read_posts": "Reads your posts and sells them to advertising companies.",
-        "write_posts": "Writes random ads on your timeline.",
-        "read_groups": "Communities are the first aim of the company.",
-        "write_groups": "Advertises also your groups of friends"
-      }
+    app: {
+        name: 'tent.js example app',
+        url: 'http://example.com',
+        post_types: {
+            read: ['https://tent.io/types/status/v0'],
+            write: ['https://tent.io/types/status/v0']
+        },
+        redirect_uri: 'http://example.com/oauth'
     }
 };
