@@ -13,8 +13,8 @@ client.discovery (err, _) ->
         console.error err
         return
 
-    appPost = JSON.parse fs.readFileSync 'app.v3.json'
-    credPost = JSON.parse fs.readFileSync 'appcred.v3.json'
+    appPost = JSON.parse fs.readFileSync 'credentials/app.v3.json'
+    credPost = JSON.parse fs.readFileSync 'credentials/appcred.v3.json'
 
     client.setAppCredentials credPost
     client.setAppId appPost.id
@@ -32,7 +32,7 @@ client.discovery (err, _) ->
                     return
 
                 console.log 'Authentication worked!'
-                fs.writeFileSync 'user.v3.json', JSON.stringify userAuth
+                fs.writeFileSync 'credentials/user.v3.json', JSON.stringify userAuth
 
             rl.close()
 

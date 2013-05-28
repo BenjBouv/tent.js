@@ -25,6 +25,6 @@ client.discovery (err, post) ->
         p appPost
         p 'Credentials:'
         p credPost
-        fs.writeFileSync 'app.v3.json', JSON.stringify appPost
-        fs.writeFileSync 'appcred.v3.json', JSON.stringify credPost
+        fs.writeFileSync 'credentials/app.v3.json', JSON.stringify appPost
+        fs.writeFileSync 'credentials/appcred.v3.json', JSON.stringify credPost
         p 'Everything went ok :)'
