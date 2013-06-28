@@ -16,8 +16,8 @@ client.discovery (err, _) ->
     appPost = JSON.parse fs.readFileSync 'credentials/app.v3.json'
     credPost = JSON.parse fs.readFileSync 'credentials/appcred.v3.json'
 
-    client.setAppCredentials credPost
-    client.setAppId appPost.id
+    client.setAppCredentials credPost.post
+    client.setAppId appPost.post.id
 
     client.app.getAuthUrl (err, auth) ->
         if err

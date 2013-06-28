@@ -12,7 +12,7 @@ class RequestFactory
 
     expand: (link) ->
         if @meta
-            found = @meta.content.servers[0].urls[ link ]
+            found = @meta.post.content.servers[0].urls[ link ]
             if found then found else link
         else
             link

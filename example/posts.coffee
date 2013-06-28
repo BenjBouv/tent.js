@@ -14,9 +14,9 @@ appPost = JSON.parse fs.readFileSync 'credentials/app.v3.json'
 appAuth = JSON.parse fs.readFileSync 'credentials/appcred.v3.json'
 userAuth = JSON.parse fs.readFileSync 'credentials/user.v3.json'
 
-client.setAppCredentials appAuth
+client.setAppCredentials appAuth.post
 client.setUserCredentials userAuth
-client.setAppId appPost.id
+client.setAppId appPost.post.id
 
 status =
     type: 'status'
