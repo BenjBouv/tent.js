@@ -76,12 +76,15 @@ class TentRequest extends Request
                     return
                 else
                     credObj = @client.appCred
-            else if @needAuth == 'client'
-                if not @client.clientCred
+            else if @needAuth == 'user'
+                if not @client.userCred
                     cb 'TentRequest.run: client auth needed but no credentials given. Request aborted'
                     return
                 else
-                    credObj = @client.clientCred
+                    credObj = @client.userCred
+            else
+                cb 'TentRequest.run: unknown auth needed method'
+                return
 
             credentials =
                 id: credObj.id

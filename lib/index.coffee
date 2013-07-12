@@ -22,7 +22,7 @@ class Client
         @appId = null
         @appPost = null
         @appCred = null
-        @clientCred = null
+        @userCred = null
 
     # Applies the discovery dance and returns the meta post to the callback
     # Param: cb(maybeError, meta)
@@ -94,10 +94,6 @@ class Client
             appAuthObj = appAuthObj.content
             appAuthObj.id = id
         @appCred = appAuthObj
-
-        if not @appId
-            @appId = appAuthObj.id
-
         @
 
 module.exports = Client
