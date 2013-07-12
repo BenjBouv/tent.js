@@ -19,7 +19,7 @@ client.discovery (err, _) ->
     client.setAppCredentials credPost.post
     client.setAppId appPost.post.id
 
-    client.app.getAuthUrl (err, auth) ->
+    client.app.authUrl (err, auth) ->
         if err
             console.error err
             return

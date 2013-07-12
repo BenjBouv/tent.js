@@ -2,12 +2,7 @@ fs = require 'fs'
 
 config = require './config'
 tent = require '../lib/tent'
-
-p = (something) ->
-    if typeof something != 'string'
-        console.log JSON.stringify something, null, '  '
-    else
-        console.log something
+p = console.log
 
 client = new tent config.entity
 client.discovery (err, post) ->
