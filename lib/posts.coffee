@@ -8,22 +8,20 @@ class Posts extends SubModule
 
     Posts::TYPES =
         status:
-            required: []
+            required: [] # TODO
             url: 'https://tent.io/types/status/v0#'
         app:
-            required: []
+            required: [] # TODO
             url: 'https://tent.io/types/app/v0#'
 
     get: (params, cb) ->
-        reqParam =
-            url: 'posts_feed'
-            additional: params
-            accept: 'feed'
-            method: 'GET'
-            appId: @client.app.id
-            auth: @client.credentials.user # TODO facultative, for public posts
-
-        @call reqParam, utils.makeGenericCallback cb
+        r = @createRequest()
+        r.url = '@posts_feed'
+        r.method = 'GET'
+        r.accept 'feed'
+        r.setAuthNeeded 'user'
+        r.genericRun cb
+        @
 
     spawnParams: (postObj, method) ->
         method ?= 'POST'

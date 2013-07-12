@@ -1,21 +1,15 @@
+TentRequest = require './tent-requests'
+Synq = require './synq'
 utils = require './utils'
 
 AppModule = require './app'
-#PostsModule = require './posts'
-#ProfileModule = require './profile'
-#FollowingModule = require './following'
-#FollowerModule = require './followers'
-
-TentRequest = require './tent-requests'
-
-#Credentials = require './credentials'
-Synq = require './synq'
+PostsModule = require './posts'
 
 class Client
     constructor: (@entity) ->
         # sub-modules
         @app = new AppModule @
-        #@posts = new PostsModule @
+        @posts = new PostsModule @
 
         # properties
         @queue = new Synq

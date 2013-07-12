@@ -1,6 +1,6 @@
 fs = require 'fs'
 config = require './config'
-tent = require '../lib/tent'
+tent = require '../lib/'
 
 p = (something) ->
     if typeof something != 'string'
@@ -23,6 +23,7 @@ status =
     content:
         text: "This statement is false."
 
+###
 client.posts.create status, (err2, _) ->
     if err2
         console.error err2
@@ -30,11 +31,10 @@ client.posts.create status, (err2, _) ->
 
     console.log 'Post created: '
     console.log _
-
 ###
+
 client.posts.get {}, (err2, feed) ->
     if err2
         console.error err2
         return
     p feed
-###
