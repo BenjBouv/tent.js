@@ -1,4 +1,4 @@
-tent = require '../lib/tent'
+tent = require '../lib/'
 config = require './config'
 
 client = new tent config.entity

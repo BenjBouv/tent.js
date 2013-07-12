@@ -1,6 +1,6 @@
 fs = require 'fs'
 config = require './config'
-tent = require '../lib/tent'
+tent = require '../lib/'
 
 readline = require 'readline'
 rl = readline.createInterface
