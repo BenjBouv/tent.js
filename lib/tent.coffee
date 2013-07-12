@@ -1,64 +1,65 @@
 utils = require './utils'
 
 AppModule = require './app'
-PostsModule = require './posts'
+#PostsModule = require './posts'
 #ProfileModule = require './profile'
 #FollowingModule = require './following'
 #FollowerModule = require './followers'
 
-RequestFactory = require './reqfactory'
+TentRequest = require './tent-requests'
 
-Credentials = require './credentials'
+#Credentials = require './credentials'
 Synq = require './synq'
 
 class Client
     constructor: (@entity) ->
+        # sub-modules
         @app = new AppModule @
-        @posts = new PostsModule @
+        #@posts = new PostsModule @
+
+        # properties
         @queue = new Synq
-        @credentials = {}
+        @appId = null
+        @appPost = null
+        @appCred = null
+        @clientCred = null
 
-        @reqFactory = new RequestFactory @entity
-
+    # Applies the discovery dance and returns the meta post to the callback
+    # Param: cb(maybeError, meta)
     discovery: (cb) ->
+        req = new TentRequest @
+        req.url = @entity
+        req.method = 'HEAD'
+        req.accept 'all'
 
-        reqParam =
-            url: @entity
-            method: 'HEAD'
-            accept: 'post'
-
-        rcb = (err, headers, data) =>
-            if err
-                cb err, null
+        req.run (maybeError, body, headers) =>
+            if maybeError
+                cb maybeError
                 return
 
             if not headers.link
                 cb 'Link section not found in headers during discovery'
                 return
 
-            metaURL = utils.parseLink(headers.link).link
+            metaURL = TentRequest.prototype.parseLink(headers.link).link
 
             # Get meta post
-            getMetaParams =
-                url: metaURL
-                method: 'GET'
-                accept: 'post'
+            getMetaReq = new TentRequest @
+            getMetaReq.url = metaURL
+            getMetaReq.method = 'GET'
+            getMetaReq.accept 'post'
 
-            cb2 = (erz, headerz, dataz) =>
-                if erz then cb erz
-                else
-                    @meta = dataz
-                    @reqFactory.setMeta @meta
-                    cb null, @meta
+            getMetaReq.run (maybeError2, body2, headers2) =>
+                if maybeError2
+                    cb maybeError2
+                    return
 
-            @reqFactory.create( getMetaParams, cb2 ).run()
-
-        r = @reqFactory.create reqParam, rcb,
-            "Accept": "*/*"
-        r.run()
-
+                metaPost = body2.post
+                @meta = metaPost
+                cb null, @meta
         @
 
+    # cb(maybeError, meta)
     getMeta: (cb) ->
         @queue.push () =>
             @getMetaCall (err, meta) =>
@@ -69,33 +70,34 @@ class Client
     getMetaCall: (cb) ->
         if @meta
             cb null, @meta
-            return
-
-        @discovery cb
+        else
+            @discovery cb
         @
 
-    getAuthUrl: (cb) ->
-        @app.getAuthUrl cb
+    # cb(maybeError, full auth url)
+    authUrl: (cb) ->
+        @app.authUrl cb
         @
 
     setAppId: (appId) ->
-        @app.id = appId
-        @reqFactory.setAppId appId
+        @appId = appId
         @
 
     setUserCredentials: (userAuthObj) ->
         userAuthObj.id = userAuthObj.access_token
-        @credentials.user = Credentials.make userAuthObj, @app
+        @userCred = userAuthObj
         @
 
     setAppCredentials: (appAuthObj) ->
-
         if appAuthObj.content
             id = appAuthObj.id
             appAuthObj = appAuthObj.content
             appAuthObj.id = id
+        @appCred = appAuthObj
 
-        @credentials.app = Credentials.make appAuthObj, @app
+        if not @appId
+            @appId = appAuthObj.id
+
         @
 
 module.exports = Client

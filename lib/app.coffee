@@ -1,99 +1,98 @@
 utils = require './utils'
-Credentials = require './credentials'
+#Credentials = require './credentials'
+TentRequest = require './tent-requests'
 SubModule = require './submodule'
 
 class Application extends SubModule
 
-    getAuthUrl: (cb) =>
+    Application::AUTH_TOKEN_TYPE = 'https://tent.io/oauth/hawk-token'
 
-        if not @id
-            cb 'No app id in getAuthUrl!'
+    authUrl: (cb) ->
+        if not @client.appId
+            cb 'Application/Client.authUrl: no app ID provided!'
             return
 
-        @client.getMeta (err, meta) =>
-            if err
-                cb err
+        @client.getMeta (maybeError, meta) =>
+            if maybeError
+                cb maybeError
                 return
 
             utils.generateUniqueToken (state) =>
                 @state = state
-                urlWrapper =
-                    url: 'oauth_auth'
-                url = @client.reqFactory.prepare(urlWrapper).url
-                url += '?client_id=' + @id + '&state=' + @state
+                url = TentRequest::lookupEndpoint meta, 'oauth_auth'
+                url += '?client_id=' + @client.appId + '&state=' + @state
                 cb null, url
         @
 
     register: (appInfo, cb) =>
+        r = @createRequest()
+        r.url = '@new_post'
+        r.method = 'POST'
+        r.postType 'app'
         appPost =
             type: 'app'
             content: appInfo
             permissions:
                 public: false
+        r.setBody appPost
 
-        rcb = (err, h, appPostResponse) =>
-            if err
-                cb err
+        r.run (maybeError, appInfo, headers) =>
+            if maybeError
+                cb maybeError
                 return
 
-            if not h.link
-                cb 'No link in headers'
+            if not headers.link
+                cb 'App.register: No link in headers'
                 return
 
-            link = utils.parseLink(h.link).link
-            @info = appPostResponse
-            @client.setAppId appPostResponse.id
+            link = TentRequest.prototype.parseLink(headers.link).link
+            @info = appInfo
+
+            @client.setAppId appInfo.id
+            @client.appPost = appInfo
 
             # Get credentials post
-            getCredParam =
-                url: link
-                method: 'GET'
-                accept: 'post'
+            getCredReq = @createRequest()
+            getCredReq.url = link
+            getCredReq.method = 'GET'
+            getCredReq.accept 'post'
 
-            cb2 = (erz, headerz, appCredentials) =>
-                if erz
-                    cb erz
+            getCredReq.run (maybeError2, appCred, headers2) =>
+                if maybeError2
+                    cb maybeError2
                     return
 
-                @client.setAppCredentials appCredentials
-                cb null, @info, appCredentials
+                @client.setAppCredentials appCred
+                cb null, @client.appPost, appCred
 
-            @call getCredParam, cb2
-
-        @client.posts.createApp appPost, rcb
         @
 
+    # Trades the code, checks the state and calls cb(maybeError, client auth post)
     tradeCode: ( code, state, cb ) =>
-        if not @id
-            cb 'tradeCode: no application id!\n' + new Error().stack
+        if not @client.appId
+            cb 'app.tradeCode: no application id!\n'
             return
 
-        ###
         if not @state
-            cb 'tradeCode: no application state!\n' + new Error().stack
+            cb 'app.tradeCode: no application state!\n'
             return
 
+        ###
         if @state != state
-            cb 'tradeCode: state different than the one used in registration.\n' + new Error().stack
+            cb 'app.tradeCode: state different than the one used in registration.\n' + new Error().stack
             return
         ###
-        # TODO for test purpose only
 
-        reqParam =
-            url: 'oauth_token'
-            method: 'POST'
-            body: JSON.stringify
-                code: code
-                token_type: Credentials.types['hawk']
-
-            needAuth: true
-            auth: @client.credentials.app
-
-        headers =
-            'Content-Type': 'application/json'
-            'Accept': 'application/json'
-
-        @call reqParam, utils.makeGenericCallback(cb), headers
+        r = @createRequest()
+        r.url = '@oauth_token'
+        r.method = 'POST'
+        r.postType 'json'
+        r.accept 'json'
+        r.setBody
+            code: code
+            token_type: Application::AUTH_TOKEN_TYPE
+        r.setAuthNeeded('app')
+        r.genericRun cb
         @
 
 module.exports = Application

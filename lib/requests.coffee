@@ -7,65 +7,52 @@ utils = require './utils'
 
 class Request
 
-    Request::CONTENT_TYPE =
-        post: 'application/vnd.tent.post.v0+json'
-        feed: 'application/vnd.tent.posts-feed.v0+json'
-        error: 'application/vnd.tent.error.v0+json'
-        attachment: 'multipart/form-data'
+    # Public interface
+    constructor: ->
+        @url = null
+        @method = null
+        @headers = {}
+        @body = null
+        @queryparam = {}
+        @expected = 200 # OK
 
-    constructor: (params, @cb, headers, appId) ->
-
-        if not params.url
-            @cb 'Request: no cible defined.'
-            return
-        if not params.method
-            @cb 'Request: no method defined.'
-            return
-        if params.needAuth and not params.auth
-            @cb 'Request needs authentication, but no credentials were given.'
-            return
-
-        if params.additional and Object.keys(params.additional).length > 0
-            params.url += '?' + qs.stringify( params.additional )
-
-        @opts = url.parse params.url
-        @opts.method = params.method
-        @opts.headers = headers || {}
-
-        # Accept field
-        if not headers or not headers.accept
-            if params.accept
-                @opts.headers['Accept'] = Request::CONTENT_TYPE[ params.accept ] || null
-            else
-                console.warn 'No accept field in request (' + params.method + ' ' + params.url + ' )'
-
-        # Body, body length and content type
-        if params.body
-            @body = params.body
-            @opts.headers['Content-Length'] = @body.length.toString()
-
-            if not headers or not headers['Content-Type']
-                contentType = Request::CONTENT_TYPE[ params.contentType ] || null
-                if params.postType
-                    contentType += '; type="' + params.postType + '"'
-                @opts.headers['Content-Type'] = contentType
-
-        else
-            @body = null
-
-        # Authentication
-        if params.auth and appId
-            @opts.headers['Authorization'] = params.auth.make params.url, params.method, appId
-
+    setBody: (body) ->
+        @body = if typeof body == 'string' then body else JSON.stringify body
+        @headers['Content-Length'] = @body.length.toString()
         @
 
-    run: () ->
+    addHeader: (name, value) ->
+        if name and value
+            @headers[name] = value
+        @
 
-        utils.debug 'requests.headers', @opts
+    addQueryParameter: (name, value) ->
+        if name and value
+            @queryparam[name] = value
+        @
 
-        reqMeth = if utils.isSecured @opts then https.request else http.request
+    # Runs a request.
+    # params:
+    #   cb(maybeError, body, headers)
+    run: (cb) ->
+
+        if !@url
+            cb 'Request: no URL given. Request aborted'
+            return
+        if !@method
+            cb 'Request: no method given. Request aborted'
+            return
+
+        opts = url.parse @url
+        opts.method = @method
+        opts.headers = @headers
+
+        utils.debug 'request.headers', @headers
+        utils.debug 'request.body', @body
+
+        requestFunction = if isSecured opts then https.request else http.request
         cbCalled = false
-        req = reqMeth @opts, (res) =>
+        req = requestFunction opts, (res) =>
             data = ''
 
             res.on 'data', (chunk) ->
@@ -75,19 +62,19 @@ class Request
                 if cbCalled
                     return
 
-                cbCalled = true
                 utils.debug 'response.headers', res.headers
                 utils.debug 'response.body', data
 
-                if res.statusCode and res.statusCode != 200
-                    @cb "Status isn't 200 OK but " + res.headers.status + "\nData received: " + data
+                if res.statusCode and res.statusCode != @expected
+                    cb "Request: Status isn't " + @expected + " but " + res.headers.status + "\nData received: " + data
                 else
-                    try
-                        if data.length > 0
+                    if data.length > 0
+                        try
                             data = JSON.parse data
-                        @cb null, res.headers, data
-                    catch err
-                        @cb 'when parsing JSON response: ' + err + '\n' + new Error().stack
+                        catch err
+                            cb 'when parsing JSON response: ' + err + '\n' + new Error().stack
+                    cbCalled = true
+                    cb null, data, res.headers
                 @
 
         req.on 'error', (err) ->
@@ -95,11 +82,25 @@ class Request
                 console.error 'Request: callback already called, but error received: ' + err
                 return
 
+            ###
+            # TODO is that really happening?
             if err.code != 'HPE_INVALID_CONSTANT'
                 cbCalled = true
                 cb err
+            ###
 
         if @body then req.end @body else req.end()
         @
+
+    # Private interface
+    # methods for the headers
+    isSecured = (opts) ->
+        opts.protocol == 'https:'
+
+    getPort = (opts) ->
+        port = opts.port
+        if !port
+            port = if isSecured opts then 443 else 80
+        port
 
 module.exports = Request
