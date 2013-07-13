@@ -43,9 +43,13 @@ class TentRequest extends Request
     accept: (type) ->
         @addHeader 'Accept', TentRequest::CONTENT_TYPE[ type ] || type
 
-    postType: (type) ->
+    postType: (type, fragment) ->
         contentType = TentRequest::CONTENT_TYPE['post']
-        contentType += '; type="' + (TentRequest::POST_TYPE[type] || type) + '"'
+        contentType += '; type="' + (TentRequest::POST_TYPE[type] || type)
+
+        if fragment
+            contentType += fragment
+        contentType += '"'
         @addHeader 'Content-Type', contentType
 
     setAuthNeeded: (type) ->
