@@ -8,7 +8,7 @@ module.exports = {
     app: {
         name: 'tent.js example app',
         url: 'http://example.com',
-        post_types: {
+        types: {
             read: ['https://tent.io/types/status/v0'],
             write: ['https://tent.io/types/status/v0']
         },
