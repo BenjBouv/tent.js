@@ -12,3 +12,5 @@ exports.debug = (str, obj) ->
         console.log obj
         console.log()
 
+exports.error = (str) ->
+    console.error str
