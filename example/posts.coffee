@@ -18,23 +18,34 @@ client.setAppCredentials appAuth.post
 client.setUserCredentials userAuth
 client.setAppId appPost.post.id
 
-status =
-    type: 'status'
-    content:
-        text: "This statement is false."
-
-###
-client.posts.create status, (err2, _) ->
-    if err2
-        console.error err2
+client.posts.create('status')
+ .content
+    text: 'Bonjour, monde!'
+ .private()
+ .run (maybeError, createdPost) ->
+    if maybeError
+        console.error maybeError
         return
 
     console.log 'Post created: '
-    console.log _
-###
+    console.log createdPost
 
-client.posts.get {}, (err2, feed) ->
-    if err2
-        console.error err2
-        return
-    p feed
+    client.posts.createStatus('Hello, world (previous was in French)')
+     .published_at(new Date)
+     .addParent(createdPost)
+     .versionMessage('An international version of the previous French message')
+     .license('https://www.gnu.org/licenses/gpl.html')
+     .public()
+     .run (maybeError2, createdPost2) ->
+         if maybeError2
+             console.error maybeError2
+             return
+         console.log 'New version created:'
+         console.log createdPost2
+         console.log 'Loading feed...'
+
+         client.posts.get {}, (err2, feed) ->
+            if err2
+                console.error err2
+                return
+            p feed
