@@ -11,9 +11,6 @@ class TentRequest extends Request
         error: 'application/vnd.tent.error.v0+json'
         attachment: 'multipart/form-data'
 
-    TentRequest::POST_TYPE =
-        app: 'https://tent.io/types/app/v0#'
-
     TentRequest::parseLink = (link) ->
         linkpart = /<([^>]*)>/.exec link
         relpart = /; rel="(.*)"/.exec link
